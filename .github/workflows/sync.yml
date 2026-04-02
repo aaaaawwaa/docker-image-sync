@@ -1,0 +1,39 @@
+name: Batch Sync Resume Images to Aliyun ACR
+
+on:
+  workflow_dispatch: # 保留手动触发按钮，无需输入参数
+
+jobs:
+  sync-all:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Aliyun ACR
+        uses: docker/login-action@v3
+        with:
+          registry: crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: 1. Sync Postgres (数据库)
+        run: |
+          docker pull postgres:15-alpine
+          docker tag postgres:15-alpine crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com/my-docker-proxy-2026/resume-postgres:latest
+          docker push crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com/my-docker-proxy-2026/resume-postgres:latest
+
+      - name: 2. Sync Server (后端)
+        run: |
+          docker pull amruthpillai/reactive-resume:server-latest
+          docker tag amruthpillai/reactive-resume:server-latest crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com/【你的命名空间】/resume-server:latest
+          docker push crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com/my-docker-proxy-2026/resume-server:latest
+
+      - name: 3. Sync Client (前端)
+        run: |
+          docker pull amruthpillai/reactive-resume:client-latest
+          docker tag amruthpillai/reactive-resume:client-latest crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com/【你的命名空间】/resume-client:latest
+          docker push crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com/my-docker-proxy-2026/resume-client:latest
+
+      - name: 4. Sync Printer (导出组件)
+        run: |
+          docker pull amruthpillai/reactive-resume:printer-latest
+          docker tag amruthpillai/reactive-resume:printer-latest crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com/【你的命名空间】/resume-printer:latest
+          docker push crpi-o8thnhvwfkexpji6.cn-shenzhen.personal.cr.aliyuncs.com/my-docker-proxy-2026/resume-printer:latest
